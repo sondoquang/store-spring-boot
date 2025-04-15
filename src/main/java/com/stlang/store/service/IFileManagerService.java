@@ -9,6 +9,7 @@ public interface IFileManagerService {
 
     byte[] read(String folder, String file);
     List<String> save(String folder, MultipartFile[] files);
+    String upload(String folder, MultipartFile file);
     void delete(String folder, String file);
     List<String>list(String folder);
 

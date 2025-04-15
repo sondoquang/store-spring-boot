@@ -48,7 +48,7 @@ public class ProductService implements com.stlang.store.service.IProductService 
 
     @Override
     public Product findById(Integer id) {
-        return productDAO.findById(id).orElseThrow(() -> new DataNotFoundException("No product found with id: " + id));
+        return productDAO.findById(id).orElseThrow(() -> {throw new DataNotFoundException("No product found with id: " + id);});
     }
 
     @Override
@@ -58,14 +58,18 @@ public class ProductService implements com.stlang.store.service.IProductService 
 
     @Override
     public Product update(Product product) {
-        productDAO.findById(product.getId()).orElseThrow(() -> new DataNotFoundException("No product found with id: " + product.getId()));
+        Product existingProduct = this.findById(product.getId());
+        if(product.getImage() == null){
+            product.setImage(existingProduct.getImage());
+        }
         return productDAO.save(product);
     }
 
     @Override
     public void delete(Integer id) {
-        findById(id);
-        productDAO.deleteById(id);
+        Product existingProduct = findById(id);
+        existingProduct.setActive(false);
+        productDAO.save(existingProduct);
     }
 
     @Override

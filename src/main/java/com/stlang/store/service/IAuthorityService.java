@@ -1,15 +1,17 @@
 package com.stlang.store.service;
 
 import com.stlang.store.domain.Authority;
+import com.stlang.store.dto.AuthorityDTO;
 
 import java.util.List;
 
 public interface IAuthorityService {
 
-    List<Authority> findAll();
+    List<AuthorityDTO> findAll();
     Authority findById(Integer id);
-    Authority create(Authority authority);
-    Authority update(Authority authority);
+    Authority create(String userId, String roleId);
+    Authority update(Integer id, String userId, String roleId);
     void delete(Integer id);
+    List<AuthorityDTO> findByAccount(String accountId);
 
 }

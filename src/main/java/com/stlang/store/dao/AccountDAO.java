@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface AccountDAO extends JpaRepository<Account, String> {
     Optional<Boolean> findCountByEmailAndUsernameNot(String email, String username);
     Optional<Account> findByEmail(String email);
+    Account findByUsernameAndRefreshToken(String username, String email);
 }

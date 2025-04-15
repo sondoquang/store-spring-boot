@@ -7,10 +7,10 @@ import java.util.List;
 public interface IRoleService {
 
     List<Role> findAll();
-    Role findById(Integer id);
+    Role findById(String id);
     Role findByName(String name);
-    Role create(String role);
-    Role update(Integer id, String role);
-    void delete(Integer id);
+    Role create(Role role);
+    Role update(String id, String role);
+    void delete(String id);
 
 }

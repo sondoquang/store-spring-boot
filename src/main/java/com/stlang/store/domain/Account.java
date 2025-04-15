@@ -18,6 +18,7 @@ import java.util.List;
 public class Account  implements Serializable {
 
     @Id
+    @Column(columnDefinition = "VARCHAR(100)", nullable = false)
     private String username;
     @NotNull(message = "Password is not null !")
     private String password;
@@ -35,7 +36,7 @@ public class Account  implements Serializable {
     private String refreshToken;
 
     @JsonIgnore
-    @OneToMany (mappedBy = "account")
+    @OneToMany (mappedBy = "account", fetch = FetchType.EAGER)
     private List<Authority> authorities;
 
     @JsonIgnore

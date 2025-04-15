@@ -1,7 +1,6 @@
 package com.stlang.store.utils;
 
 import com.stlang.store.response.RestResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -33,10 +32,11 @@ public class FormatRestResponse implements ResponseBodyAdvice<Object> {
         int statusCode = resp.getStatus();
         RestResponse restResponse = new RestResponse();
         restResponse.setStatusCode(statusCode);
-        if(statusCode >= 400) {
+        if(statusCode >= 400 || body instanceof byte [] || body instanceof String ) {
             return body;
         }
-        else if(body instanceof byte []) {
+        String path = request.getURI().getPath();
+        if(path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui")){
             return body;
         }
         else{

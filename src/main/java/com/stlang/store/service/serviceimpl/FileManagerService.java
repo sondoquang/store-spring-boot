@@ -57,6 +57,20 @@ public class FileManagerService implements IFileManagerService {
     }
 
     @Override
+    public String upload(String folder, MultipartFile file) {
+        String name = System.currentTimeMillis() + file.getOriginalFilename();
+        String fileName = Integer.toHexString(name.hashCode()) + name.substring(name.lastIndexOf("."));
+        Path path = getPath(folder, fileName);
+        try {
+            file.transferTo(path);
+            return fileName;
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void delete(String folder, String filename) {
         Path path = getPath(folder, filename);
         path.toFile().delete();

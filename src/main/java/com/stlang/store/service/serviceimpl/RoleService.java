@@ -23,8 +23,8 @@ public class RoleService implements com.stlang.store.service.IRoleService {
     }
 
     @Override
-    public Role findById(Integer id) {
-        return roleDAO.findById(id).orElseThrow(() -> new DataNotFoundException("Role not found"));
+    public Role findById(String id) {
+        return roleDAO.findById(id).orElseThrow(() -> {throw new DataNotFoundException("Role not found");});
     }
 
     @Override
@@ -33,24 +33,26 @@ public class RoleService implements com.stlang.store.service.IRoleService {
     }
 
     @Override
-    public Role create(String role) {
-        Role existingRole = findByName(role);
+    public Role create(Role role) {
+        Role existingRole = roleDAO.findById(role.getId()).orElse(null);
         if (existingRole == null) {
-            Role saveRole = Role.builder().name(role).build();
+            Role saveRole = Role.builder()
+                    .id(role.getId())
+                    .name(role.getName()).build();
             return roleDAO.save(saveRole);
         }
         throw new DataExistingException("Role already exists");
     }
 
     @Override
-    public Role update(Integer id, String role) {
+    public Role update(String id, String role) {
         Role existingRole = findById(id);
         existingRole.setName(role);
         return roleDAO.save(existingRole);
     }
 
     @Override
-    public void delete(Integer id) {
+    public void delete(String id) {
         roleDAO.findById(id).orElseThrow(() -> new DataNotFoundException("Role not found"));
         roleDAO.deleteById(id);
     }

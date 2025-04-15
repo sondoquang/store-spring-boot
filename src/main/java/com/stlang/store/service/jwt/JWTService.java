@@ -6,19 +6,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 
@@ -27,7 +22,7 @@ public class JWTService {
 
 
 
-//    private static final String SECRET = "TmV3U2VjcmV0S2V5Rm9ySldUU2LnbmLuZ1B1cnBvc2VzMTIzNDU2Nzg=\\r\\n\";";
+//    private static final String SECRET = "SeEPo+vkklz5eTLRAqvpR0h0tqC+6N2ZSwK/4+Fyy31yqjnsFJzPmLzDGRy1fp2/\n";
 
     private String secretKey;
 
@@ -39,24 +34,27 @@ public class JWTService {
         try {
             KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
             SecretKey secretKey = keyGen.generateKey();
-            System.out.println("SecretKey: " + secretKey);
+            System.out.println("SecretKey: " + secretKey.toString());
             return Base64.getEncoder().encodeToString(secretKey.getEncoded());
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public String generateToken(String username) {
+    public String generateToken(UserDetails userDetail) {
+        long now = System.currentTimeMillis();
         Map<String, Object> claims= new HashMap<>();
+        String jti = UUID.randomUUID().toString();
+        claims.put("jti", jti);
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000*60*60))
+                .setSubject(userDetail.getUsername())
+                .setIssuedAt(new Date(now))
+                .setExpiration(new Date(now + 1000*60*60*30))
                 .signWith(getKey(), SignatureAlgorithm.HS256).compact();
     }
 
-    public String generateRefreshToken(String email, LoginDTO loginDTO) {
+    public String generateRefreshToken(UserDetails userDetails, LoginDTO loginDTO) {
         Map<String, Object> claims= new HashMap<>();
         claims.put("email", loginDTO.getUserLogin().getEmail());
         claims.put("fullname", loginDTO.getUserLogin().getFullName());
@@ -64,7 +62,7 @@ public class JWTService {
         claims.put("username", loginDTO.getUserLogin().getUsername());
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(email)
+                .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000*60*60*24*100))
                 .signWith(getKey(), SignatureAlgorithm.HS256).compact();
@@ -77,7 +75,6 @@ public class JWTService {
     }
 
     public String extractUsername(String token) {
-
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -95,6 +92,7 @@ public class JWTService {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
+
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
