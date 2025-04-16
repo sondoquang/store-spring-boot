@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface AuthorityDAO extends JpaRepository<Authority,Integer> {
 
     List<Authority> findByAccount(Account account);
+
 }

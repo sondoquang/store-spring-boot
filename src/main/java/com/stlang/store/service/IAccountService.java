@@ -7,10 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IAccountService {
 
-    Page<Account> findAll(int pageNumber, int pageSize, Sort... sort);
+    Page<Account> findAll(int pageNumber, int pageSize, Map<String,String> queries, Sort... sort);
     List<Account> findAll();
     Account findById(String username);
     Account createAccount(Account account);

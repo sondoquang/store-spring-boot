@@ -2,15 +2,21 @@ package com.stlang.store.controller.admin;
 
 import com.stlang.store.domain.Account;
 import com.stlang.store.dto.AccountDTO;
+import com.stlang.store.dto.AccountPaginateDTO;
 import com.stlang.store.service.IAccountService;
 import com.stlang.store.service.IFileManagerService;
 import com.stlang.store.service.jwt.JWTService;
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -31,12 +37,32 @@ public class AccountAController {
     private JWTService jwtService;
 
     @GetMapping("/accounts")
-    public ResponseEntity<List<AccountDTO>> getAccounts() {
-        List<Account> accounts = accountService.findAll();
-        List<AccountDTO> accountDTOs = accounts.stream()
+    public ResponseEntity<AccountPaginateDTO> getAccounts(@PathParam("pageNo") Optional<Integer> pageNo,
+                                                          @PathParam("pageSize") Optional<Integer> pageSize,
+                                                          @PathParam("fullname") Optional<String> fullname,
+                                                          @PathParam("email") Optional<String> email
+    ) {
+        int pageNoValue = pageNo.isPresent() ? pageNo.get() - 1 : 0;
+        Map<String, String> queryParams = new HashMap<>();
+        if (fullname.isPresent()) {
+            queryParams.put("fullname", fullname.get());
+        }
+        if (email.isPresent()) {
+            queryParams.put("email", email.get());
+        }
+        Page<Account> page = accountService.findAll(pageNoValue, pageSize.orElse(5), queryParams);
+        List<AccountDTO> accountDTOs = page.getContent().stream()
                 .map(account -> accountService.accountToDTO(account))
                 .toList();
-        return ResponseEntity.status(OK).body(accountDTOs);
+        AccountPaginateDTO accountPaginateDTO = new AccountPaginateDTO();
+        accountPaginateDTO.setAccounts(accountDTOs);
+        AccountPaginateDTO.Meta meta = new AccountPaginateDTO.Meta();
+        meta.setCurrentPage(page.getNumber() + 1);
+        meta.setPageSize(page.getSize());
+        meta.setTotalPages(page.getTotalPages());
+        meta.setTotalElements(Integer.valueOf(page.getTotalElements() + ""));
+        accountPaginateDTO.setMeta(meta);
+        return ResponseEntity.status(OK).body(accountPaginateDTO);
     }
 
     @GetMapping("/accounts/{username}")
@@ -47,9 +73,8 @@ public class AccountAController {
 
     @PostMapping(path = "/accounts")
     public ResponseEntity<AccountDTO> createAccount(@RequestBody Account account) {
-        Account createAccount = null;
         account.setPassword(passwordEncoder.encode(account.getPassword()));
-        createAccount = accountService.createAccount(account);
+        Account createAccount = accountService.createAccount(account);
         return ResponseEntity.status(OK).body(accountService.accountToDTO(createAccount));
     }
 
@@ -65,12 +90,8 @@ public class AccountAController {
 
     @DeleteMapping("/accounts/{username}")
     public ResponseEntity<Void> deleteAccount(@PathVariable String username) {
-        try {
-            accountService.deleteAccount(username);
-            return ResponseEntity.status(NO_CONTENT).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(BAD_REQUEST).body(null);
-        }
+        accountService.deleteAccount(username);
+        return ResponseEntity.status(OK).body(null);
     }
 
 }

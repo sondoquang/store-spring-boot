@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 @Getter
@@ -31,6 +32,14 @@ public class Account  implements Serializable {
 
     @Builder.Default
     private Boolean gender = true;
+
+    @Temporal(TemporalType.DATE)
+    @Builder.Default
+    private Date createAt = new Date();
+
+    @Temporal(TemporalType.DATE)
+    @Builder.Default
+    private Date updateAt = new Date();
 
     @Column(columnDefinition = "NVARCHAR(1000)",name = "refresh_token")
     private String refreshToken;

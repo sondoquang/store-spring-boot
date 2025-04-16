@@ -42,6 +42,12 @@ public class SecurityConfiguration {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    @Autowired
+    private CustomAuthenticatedEntryPoint customAuthenticatedEntryPoint;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -57,7 +63,7 @@ public class SecurityConfiguration {
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAuthenticatedEntryPoint customAuthenticatedEntryPoint) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable());
         http.cors(Customizer.withDefaults());
         http.authorizeHttpRequests( request -> request
@@ -66,6 +72,8 @@ public class SecurityConfiguration {
                                 String.format("%s/auth/register", apiPrefix),
                                 String.format("%s/auth/account", apiPrefix),
                                 String.format("%s/auth/refreshToken", apiPrefix),
+                                String.format("%s/storages/**", apiPrefix),
+                                String.format("%s/upload/files/**", apiPrefix),
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
@@ -97,7 +105,7 @@ public class SecurityConfiguration {
 
         http.exceptionHandling(exceptions  ->
                 exceptions.authenticationEntryPoint(customAuthenticatedEntryPoint)
-                        .accessDeniedHandler(new CustomAccessDeniedHandler()));
+                        .accessDeniedHandler(customAccessDeniedHandler));
         return http.build();
     }
 

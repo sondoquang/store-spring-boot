@@ -59,4 +59,13 @@ public class GlobalException {
         return ResponseEntity.status(BAD_REQUEST).body(restResponse);
     }
 
+    @ExceptionHandler(value = CustomFileUploadException.class)
+    public ResponseEntity<RestResponse<Object>> handleFileUpoadException(CustomFileUploadException e) {
+        RestResponse<Object> restResponse = new RestResponse<>();
+        restResponse.setStatusCode(BAD_REQUEST.value());
+        restResponse.setErrorMessage(e.getMessage());
+        restResponse.setMessage("Error uploading file");
+        return ResponseEntity.status(BAD_REQUEST).body(restResponse);
+    }
+
 }

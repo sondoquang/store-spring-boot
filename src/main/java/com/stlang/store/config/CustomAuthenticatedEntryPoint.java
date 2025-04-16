@@ -24,10 +24,12 @@ public class CustomAuthenticatedEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
         response.setContentType("application/json;charset=UTF-8");
-        RestResponse<Object> restResponse = new RestResponse<>();
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        RestResponse<Object> restResponse = new RestResponse<Object>();
         restResponse.setStatusCode(HttpStatus.UNAUTHORIZED.value());
         restResponse.setErrorMessage(authException.getMessage());
         restResponse.setMessage("Token không hợp lệ (hết hạn, không đúng định dạng,...)");
+        restResponse.setData(null);
         try {
             mapper.writeValue(response.getWriter(), restResponse);
         } catch (IOException e) {
