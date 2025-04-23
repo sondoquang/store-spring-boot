@@ -1,8 +1,9 @@
-package com.stlang.store.controller;
+package com.stlang.store.controller.admin;
 
 import com.stlang.store.domain.Category;
 import com.stlang.store.exception.DataNotFoundException;
 import com.stlang.store.service.ICategoryService;
+import jakarta.websocket.server.PathParam;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,13 +12,12 @@ import java.util.List;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@CrossOrigin("*")
 @RequestMapping("/api/v01")
-public class CategoryController {
+public class CategoryAController {
 
     private final ICategoryService ICategoryService;
 
-    public CategoryController(ICategoryService ICategoryService) {
+    public CategoryAController(ICategoryService ICategoryService) {
         this.ICategoryService = ICategoryService;
     }
 
@@ -39,17 +39,17 @@ public class CategoryController {
     }
 
     @PostMapping("/categories")
-    public ResponseEntity<Category> addCategory(@RequestBody Category category) {
+    public ResponseEntity<Category> addCategory(@PathParam("name") String name) {
         try {
-            ICategoryService.create(category);
-            return ResponseEntity.status(CREATED).body(category);
+            Category saveCategory =  ICategoryService.create(name);
+            return ResponseEntity.status(CREATED).body(saveCategory);
         } catch (DataNotFoundException e) {
             return ResponseEntity.status(BAD_REQUEST).body(null);
         }
     }
 
     @PutMapping("/categories/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable int id, @RequestBody String category) {
+    public ResponseEntity<Category> updateCategory(@PathVariable int id, @PathParam("category") String category) {
         try {
             Category updateCategory =  ICategoryService.update(category, id);
             return ResponseEntity.status(OK).body(updateCategory);

@@ -28,6 +28,13 @@ public class Product implements Serializable {
     @NotBlank(message = "Product's name is not empty!")
     private String name;
 
+    @NotBlank(message = "Product's author is not empty!")
+    private String author;
+
+    @NotBlank(message = "Product's publisher is not empty!")
+    private String publisher;
+
+    @NotBlank(message = "Product's image is not empty!")
     private String image;
 
     @Min(value = 0, message = "Product's price must be greater than or equals 0 !")
@@ -45,7 +52,7 @@ public class Product implements Serializable {
     @Min(value = 0, message = "Product's inventory must be greater than or equals 0 !")
     private Integer inventory;
 
-    @Column(name="short_desc", columnDefinition = "NVARCHAR(100)")
+    @Column(name="short_desc", columnDefinition = "NVARCHAR(300)")
     @NotBlank(message = "Short description for product is not empty!")
     private String shortDesc;
 

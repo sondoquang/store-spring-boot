@@ -3,6 +3,7 @@ package com.stlang.store.controller;
 import com.stlang.store.dto.UploadFileDTO;
 import com.stlang.store.exception.CustomFileUploadException;
 import com.stlang.store.service.file.FileService;
+import com.stlang.store.service.serviceimpl.FileManagerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -25,29 +26,34 @@ public class FileController {
     @Autowired
     private FileService fileService;
 
+    @Autowired
+    private FileManagerService fileManagerService;
+
     @Value("${stlang.upload_file.base_path}")
     private String basePath;
 
     @PostMapping("/upload/files")
-    public ResponseEntity<UploadFileDTO> uploadFile(@RequestParam(name = "file", required = false ) MultipartFile file,
+    public ResponseEntity<UploadFileDTO> uploadFile(@RequestParam(name = "file", required = false ) MultipartFile[] files,
                                                     @RequestParam("folder") String folder) throws URISyntaxException {
 
         // validate //
-        if(file.isEmpty() || file == null){
+        if(files.length == 0 || files == null){
             throw new CustomFileUploadException("File is empty");
         }
 
-        String fileName = file.getOriginalFilename();
-        List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png", "gif","doc", "web","docx","pdf");
-        Boolean isValid = allowedExtensions.stream().allMatch(item -> fileName.toLowerCase().endsWith(item))    ;
-        if (!isValid){
-            throw new CustomFileUploadException("Invalid file format");
+        for (MultipartFile file : files) {
+            String fileName = file.getOriginalFilename();
+            List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png", "gif","doc", "web","docx","pdf");
+            Boolean isValid = allowedExtensions.stream().anyMatch(item -> fileName.toLowerCase().endsWith(item))    ;
+            if (!isValid){
+                throw new CustomFileUploadException("Invalid file format");
+            }
         }
-        // create  //
-        fileService.createDirectory(basePath.concat(folder));
-        String fileUpload = fileService.upload(file,folder);
+
+        List<String> filesUpload = fileManagerService.save(folder, files);
+        String fileName = String.join(",", filesUpload);
         UploadFileDTO uploadFileDTO = UploadFileDTO.builder()
-                .fileName(fileUpload)
+                .fileName(fileName)
                 .uploadedAt(Instant.now())
                 .build();
         return ResponseEntity.status(OK).body(uploadFileDTO);

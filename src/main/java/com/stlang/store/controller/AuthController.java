@@ -101,7 +101,7 @@ public class AuthController {
                 LoginDTO.UserLogin userLogin = accountService.accountToLoginDTO(existingAccount);
                 loginDTO.setUserLogin(userLogin);
                 String newRefreshToken = jwtService.generateRefreshToken(userDetails, loginDTO);
-                accountService.updateToken(existingAccount.getUsername(), refreshToken);
+                accountService.updateToken(existingAccount.getUsername(), newRefreshToken);
 
                 ResponseCookie responseCookie = ResponseCookie.from("refreshToken", newRefreshToken)
                         .httpOnly(true)

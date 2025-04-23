@@ -3,11 +3,14 @@ package com.stlang.store.service.serviceimpl;
 import com.stlang.store.service.IFileManagerService;
 import jakarta.servlet.ServletContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,12 +23,20 @@ public class FileManagerService implements IFileManagerService {
     @Autowired
     ServletContext app;
 
-    private Path getPath(String folder, String fileName) {
-        File dir = Paths.get(app.getRealPath("/files/"), folder).toFile();
-        if (!dir.exists()) {
-            dir.mkdirs();
+    @Value("${stlang.upload_file.base_path}")
+    private String basePath;
+
+    private Path getPath(String folder, String fileName)  {
+        try {
+            URI uri = new URI(basePath.concat(folder));
+            File dir = Paths.get(uri).toFile();
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            return Paths.get(dir.getAbsolutePath(), fileName);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
-        return Paths.get(dir.getAbsolutePath(), fileName);
     }
 
     @Override
@@ -57,7 +68,7 @@ public class FileManagerService implements IFileManagerService {
     }
 
     @Override
-    public String upload(String folder, MultipartFile file) {
+    public String upload(String folder, MultipartFile file) throws URISyntaxException {
         String name = System.currentTimeMillis() + file.getOriginalFilename();
         String fileName = Integer.toHexString(name.hashCode()) + name.substring(name.lastIndexOf("."));
         Path path = getPath(folder, fileName);
@@ -79,6 +90,7 @@ public class FileManagerService implements IFileManagerService {
     @Override
     public List<String> list(String folder) {
         List<String> list = new ArrayList<String>();
+
         File dir = Paths.get(app.getRealPath("/files/"), folder).toFile();
         if (dir.exists()) {
             File[] files = dir.listFiles();

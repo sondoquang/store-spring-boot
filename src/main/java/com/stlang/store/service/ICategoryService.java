@@ -9,7 +9,7 @@ public interface ICategoryService {
     List<Category> findAll();
     Category findById(Integer id);
     Category findByName(String name);
-    Category create(Category category);
+    Category create(String categoryName);
     Category update(String name, Integer id);
     void delete(Integer id);
 

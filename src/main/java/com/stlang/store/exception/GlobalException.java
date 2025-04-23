@@ -60,11 +60,20 @@ public class GlobalException {
     }
 
     @ExceptionHandler(value = CustomFileUploadException.class)
-    public ResponseEntity<RestResponse<Object>> handleFileUpoadException(CustomFileUploadException e) {
+    public ResponseEntity<RestResponse<Object>> handleFileUploadException(CustomFileUploadException e) {
         RestResponse<Object> restResponse = new RestResponse<>();
         restResponse.setStatusCode(BAD_REQUEST.value());
         restResponse.setErrorMessage(e.getMessage());
         restResponse.setMessage("Error uploading file");
+        return ResponseEntity.status(BAD_REQUEST).body(restResponse);
+    }
+
+    @ExceptionHandler(value = DataIncorrectFormatException.class)
+    public ResponseEntity<RestResponse<Object>> handleDataIncorrectFormatException(DataIncorrectFormatException e) {
+        RestResponse<Object> restResponse = new RestResponse<>();
+        restResponse.setStatusCode(BAD_REQUEST.value());
+        restResponse.setErrorMessage(e.getMessage());
+        restResponse.setMessage("Error data incorrect format");
         return ResponseEntity.status(BAD_REQUEST).body(restResponse);
     }
 
