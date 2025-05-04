@@ -25,6 +25,7 @@ public class LoginDTO {
         private Boolean gender;
         private String fullName;
         private String email;
+        private String photo;
         private List<String> roles;
     }
 

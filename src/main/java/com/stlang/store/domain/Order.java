@@ -44,10 +44,10 @@ public class Order implements Serializable {
     private Double totalPrice;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "username")
     private Account account;
 
-    @JsonIgnore
     @OneToMany(mappedBy = "order")
     private List<OrderDetail> orderDetails;
 

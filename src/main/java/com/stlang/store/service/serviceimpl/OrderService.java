@@ -13,6 +13,8 @@ import com.stlang.store.service.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class OrderService implements IOrderService {
 
@@ -55,5 +57,16 @@ public class OrderService implements IOrderService {
             }
         });
         return order;
+    }
+
+    @Override
+    public List<Order> getOrders(String username) {
+        List<Order> orders = orderDAO.findByUsername(username);
+        return orders;
+    }
+
+    @Override
+    public List<Order> findAllOrders() {
+        return orderDAO.findAll();
     }
 }

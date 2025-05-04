@@ -1,7 +1,8 @@
 package com.stlang.store.service.serviceimpl;
 
-import com.stlang.store.consts.RoleConst;
 import com.stlang.store.dao.AccountDAO;
+import com.stlang.store.dao.AuthorityDAO;
+import com.stlang.store.dao.RoleDAO;
 import com.stlang.store.domain.Account;
 import com.stlang.store.domain.Authority;
 import com.stlang.store.domain.Role;
@@ -27,10 +28,14 @@ public class AccountService implements IAccountService {
 
     private final AccountDAO accountDAO;
     private final ModelMapper modelMapper;
+    private final RoleDAO roleDAO;
+    private final AuthorityDAO authorityDAO;
 
-    public AccountService(AccountDAO accountDAO, ModelMapper modelMapper) {
+    public AccountService(AccountDAO accountDAO, ModelMapper modelMapper, RoleDAO roleDAO, AuthorityDAO authorityDAO) {
         this.accountDAO = accountDAO;
         this.modelMapper = modelMapper;
+        this.roleDAO = roleDAO;
+        this.authorityDAO = authorityDAO;
     }
 
     @Override
@@ -50,8 +55,8 @@ public class AccountService implements IAccountService {
             }
         }else if(queries.size() == 2){
             String email = queries.get("email");
-            String fullname = queries.get("fullname");
-            return accountDAO.findByFullnameContainingAndEmailContaining(fullname, email, pageable);
+            String fullName = queries.get("fullname");
+            return accountDAO.findByFullnameContainingAndEmailContaining(fullName, email, pageable);
         }
         return accountDAO.findAll(pageable);
     }
@@ -64,7 +69,7 @@ public class AccountService implements IAccountService {
     @Override
     public Account findById(String username) {
         return accountDAO.findById(username)
-                .orElseThrow(() -> { throw new DataNotFoundException("Account not found");});
+                .orElseThrow(() -> new DataNotFoundException("Account not found"));
     }
 
     @Override
@@ -77,17 +82,30 @@ public class AccountService implements IAccountService {
         if (emailExisting != null) {
             throw new DataExistingException("Email's Account already exists");
         }
-        return  accountDAO.save(account);
+
+        Account newAccount = accountDAO.save(account);
+
+        // Tìm kiếm trả về quyền USER : return Role: USER//
+        Role userRole = roleDAO.findById("USER").orElseThrow(() -> new DataNotFoundException("Role user not found"));
+        // Tạo quyền USER cho người dùng: Tạo authority: USER //
+
+        authorityDAO.save(Authority.builder()
+                        .account(newAccount)
+                        .role(userRole).build());
+        return newAccount;
     }
 
     @Override
     public Account updateAccount(String username, Account account) {
         Account existingAccount = accountDAO.findById(username)
-                .orElseThrow(() ->{throw new DataNotFoundException("Account not found");});
+                .orElseThrow(() -> new DataNotFoundException("Account not found"));
         existingAccount.setEmail(account.getEmail());
         existingAccount.setFullname(account.getFullname());
         existingAccount.setGender(account.getGender());
         existingAccount.setUpdateAt(new Date());
+        if(account.getPhoto() != null){
+            existingAccount.setPhoto(account.getPhoto());
+        }
         return accountDAO.save(existingAccount);
     }
 
@@ -116,7 +134,7 @@ public class AccountService implements IAccountService {
         AccountDTO accountDTO =  modelMapper.map(account, AccountDTO.class);
         List<String> roles = new ArrayList<>();
         if(account.getAuthorities() != null){
-            account.getAuthorities().stream().forEach(authority -> {
+            account.getAuthorities().forEach(authority -> {
                 String role = authority.getRole().getId();
                 roles.add(role);
             });
@@ -132,15 +150,15 @@ public class AccountService implements IAccountService {
         loginDTO.setEmail(account.getEmail());
         loginDTO.setFullName(account.getFullname());
         loginDTO.setGender(account.getGender());
+        loginDTO.setPhoto(account.getPhoto());
         List<String> roles = new ArrayList<>();
-        account.getAuthorities().stream().forEach(authority -> {
+        account.getAuthorities().forEach(authority -> {
             String role = authority.getRole().getId();
             roles.add(role);
         });
         loginDTO.setRoles(roles);
         return loginDTO;
     }
-
     @Override
     public Account FindAccountByIdAndRefreshToken(String username, String refreshToken) {
         return accountDAO.findByUsernameAndRefreshToken(username, refreshToken);

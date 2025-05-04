@@ -70,6 +70,7 @@ public class SecurityConfiguration {
 
                 // Order //
                 .requestMatchers(HttpMethod.POST, String.format("%s/orders", apiPrefix)).hasRole("USER")
+                .requestMatchers(HttpMethod.GET, String.format("%s/history", apiPrefix)).hasRole("USER")
 
                 // CATEGORY //
                 .requestMatchers(HttpMethod.GET, String.format("%s/categories", apiPrefix)).permitAll()

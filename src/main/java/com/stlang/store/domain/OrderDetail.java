@@ -1,5 +1,6 @@
 package com.stlang.store.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,7 @@ public class OrderDetail {
 
     private String name;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;

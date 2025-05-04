@@ -3,6 +3,9 @@ package com.stlang.store.controller.admin;
 import com.stlang.store.domain.Account;
 import com.stlang.store.dto.AccountDTO;
 import com.stlang.store.dto.AccountPaginateDTO;
+import com.stlang.store.dto.ChangePasswordDTO;
+import com.stlang.store.dto.LoginDTO;
+import com.stlang.store.exception.ChangePasswordException;
 import com.stlang.store.service.IAccountService;
 import com.stlang.store.service.IFileManagerService;
 import com.stlang.store.service.jwt.JWTService;
@@ -13,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -79,10 +79,11 @@ public class AccountAController {
     }
 
     @PutMapping("/accounts/{username}")
-    public ResponseEntity<AccountDTO> updateAccount(@PathVariable String username, @RequestBody Account account) {
+    public ResponseEntity<LoginDTO.UserLogin> updateAccount(@PathVariable String username, @RequestBody Account account) {
         try {
             Account saveAccount = accountService.updateAccount(username, account);
-            return ResponseEntity.status(OK).body(accountService.accountToDTO(saveAccount));
+            LoginDTO.UserLogin userLogin = accountService.accountToLoginDTO(saveAccount);
+            return ResponseEntity.status(OK).body(userLogin);
         } catch (Exception e) {
             return ResponseEntity.status(BAD_REQUEST).body(null);
         }
@@ -92,6 +93,27 @@ public class AccountAController {
     public ResponseEntity<Void> deleteAccount(@PathVariable String username) {
         accountService.deleteAccount(username);
         return ResponseEntity.status(OK).body(null);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<LoginDTO.UserLogin> changePassword(
+            @RequestBody ChangePasswordDTO changePasswordDTO) {
+        if(!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmPassword())) {
+            throw new ChangePasswordException("Password and confirm password do not match");
+        }
+        Account account = accountService.findById(changePasswordDTO.getUsername());
+        Boolean isMatch = passwordEncoder.matches(changePasswordDTO.getPassword(), account.getPassword());
+        if(isMatch) {
+            String newPassword = passwordEncoder.encode(changePasswordDTO.getNewPassword());
+            account.setPassword(newPassword);
+            account.setRefreshToken(null);
+            account.setUpdateAt(new Date());
+            Account updateAccount = accountService.updateAccount(account.getUsername(),account);
+            LoginDTO.UserLogin userLogin = accountService.accountToLoginDTO(updateAccount);
+            return ResponseEntity.status(OK).body(userLogin);
+        }else{
+            throw new ChangePasswordException("Passwords do not match");
+        }
     }
 
 }
